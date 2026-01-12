@@ -2,13 +2,27 @@ name: Daily Dollar Webhook
 
 on:
   schedule:
-    - cron: "0 7 * * *"
+    - cron: "0 7 * * *"   # 7:00 UTC = 9:00 Cairo (UTC+2)
   workflow_dispatch:
 
 jobs:
   call_webhook:
     runs-on: ubuntu-latest
     steps:
-      - name: Call n8n webhook
+      - name: Call n8n webhook (with retry)
         run: |
-          curl -sS -X GET "https://n8n-latest-viqu.onrender.com/webhook/daily-dollar"
+          URL="https://n8n-latest-viqu.onrender.com/webhook/daily-dollar"
+
+          echo "Calling: $URL"
+          for i in 1 2 3; do
+            echo "Attempt $i..."
+            if curl -f -sS -L -X GET "$URL"; then
+              echo "✅ Success on attempt $i"
+              exit 0
+            fi
+            echo "⚠️ Failed attempt $i. Waiting 20 seconds..."
+            sleep 20
+          done
+
+          echo "❌ All attempts failed"
+          exit 1
