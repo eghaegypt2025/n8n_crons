@@ -9,19 +9,24 @@ jobs:
   call_webhook:
     runs-on: ubuntu-latest
     steps:
-      - name: Call n8n webhook (with retry)
+      - name: Call n8n webhook (POST + retry)
         run: |
           URL="https://n8n-latest-viqu.onrender.com/webhook/daily-dollar"
 
           echo "Calling: $URL"
-          for i in 1 2 3; do
+          for i in 1 2 3 4 5 6 7 8 9 10; do
             echo "Attempt $i..."
-            if curl -f -sS -L -X GET "$URL"; then
+
+            if curl -f -sS -L -X POST \
+              -H "Content-Type: application/json" \
+              -d '{}' \
+              "$URL"; then
               echo "✅ Success on attempt $i"
               exit 0
             fi
-            echo "⚠️ Failed attempt $i. Waiting 20 seconds..."
-            sleep 20
+
+            echo "⚠️ Failed attempt $i. Waiting 30 seconds..."
+            sleep 30
           done
 
           echo "❌ All attempts failed"
